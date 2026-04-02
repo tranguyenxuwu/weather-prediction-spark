@@ -1,0 +1,1112 @@
+Last login: Sun Mar 22 13:51:00 on ttys000
+fubuki@192 ~ % /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/train.zsh                              
+🌀 WeatherPredict Model Trainer
+  Project: /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict
+  Changed to: /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict
+  Activating conda env: pyspark...
+  ✓ Conda env 'pyspark' active
+
+╭─ Model Status ─────────────────────────────────────────╮
+│  Phase 1–5 — Bottom-Up Forecast Pipeline            🟢 2026-03-22 00:35
+│  Phase 6  — Storm Genesis Classifier                🟢 2026-03-21 23:04
+│  Phase 7  — Track Displacement Regressor            🟢 2026-03-21 23:09
+│  Phase 8  — Landfall Risk Classifier                🟢 2026-03-22 02:42
+│  Phase 9  — Chained Pipeline (Genesis→Track→Landfall) 🟢 2026-03-22 02:42
+╰────────────────────────────────────────────────────────╯
+
+Select an option:
+  1) Phase 1–5: Bottom-Up Forecast Pipeline  (~35 min)
+  2) Phase 6:   Genesis Classifier           (~5 min)
+  3) Phase 7:   Track Displacement Regressor  (~4 min)
+  4) Phase 8:   Landfall Risk Classifier      (~3 min)
+  5) Phase 9:   Chained Pipeline Demo
+  6) Phases 6–9 only  (genesis → track → landfall → chained)
+  7) Phases 1–5 only  (bottom-up pipeline)
+  8) Train ALL models (Phases 1–9, sequential)
+  9) Show model status
+
+  ⚡ Dual-Cluster (parallel):
+  d) Dual: Phase 1–5 ∥ Phases 6–9  (2 Spark clusters)
+
+  q) Quit
+
+  Choice [1-9/d/q]: 1       
+
+━━━ Phase 1–5 — Bottom-Up Forecast Pipeline ━━━
+  Script:  bottom_up_forecast.py
+  Last trained: 2026-03-22 00:35
+
+2026-03-22 14:09:03,397 [INFO] ============================================================
+2026-03-22 14:09:03,398 [INFO] Bottom-Up Seasonal Tropical Cyclone Forecasting
+2026-03-22 14:09:03,398 [INFO] ============================================================
+WARNING: Using incubator modules: jdk.incubator.vector
+Using Spark's default log4j profile: org/apache/spark/log4j2-defaults.properties
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+26/03/22 14:09:04 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+26/03/22 14:09:04 WARN SparkConf: Note that spark.local.dir will be overridden by the value set by the cluster manager (via SPARK_LOCAL_DIRS in standalone/kubernetes and LOCAL_DIRS in YARN).
+2026-03-22 14:09:06,902 [INFO] ============================================================
+2026-03-22 14:09:06,902 [INFO] PHASE 1: Spatio-Temporal Feature Engineering
+2026-03-22 14:09:06,902 [INFO] ============================================================
+2026-03-22 14:09:09,283 [INFO]    Loaded master dataset: 597,493,318 rows
+2026-03-22 14:09:09,913 [INFO]    ✅ 7-day rolling averages computed
+2026-03-22 14:09:09,932 [INFO]    ✅ 14-day rolling averages computed
+2026-03-22 14:09:09,953 [INFO]    ✅ 30-day rolling averages computed
+2026-03-22 14:09:09,973 [INFO]    ✅ 90-day rolling averages computed
+2026-03-22 14:09:09,990 [INFO]    ✅ 180-day rolling averages computed
+2026-03-22 14:09:10,017 [INFO]    ✅ Derived features computed (sst_above_threshold, sst_anomaly, slp_tendency)
+2026-03-22 14:09:10,022 [INFO]    Phase 1 complete in 3s
+2026-03-22 14:09:10,022 [INFO]    Total features: 24
+2026-03-22 14:09:10,023 [INFO]    Schema: ['lat', 'lon', 'date', 'year', 'month', 'u_wind_avg', 'v_wind_avg', 'slp_avg', 'wind_speed_env_avg', 'sst_avg', 'oni_value', 'enso_phase', 'SID', 'NAME', 'wind_speed_kmh', 'pressure_wmo', 'sst_7d_avg', 'slp_7d_avg', 'wind_env_7d_avg', 'sst_14d_avg', 'slp_14d_avg', 'sst_30d_avg', 'slp_30d_avg', 'sst_90d_avg', 'slp_90d_avg', 'sst_180d_avg', 'slp_180d_avg', 'sst_above_threshold', 'sst_anomaly', 'slp_tendency']
+2026-03-22 14:09:10,023 [INFO]    Sample of engineered features:
++----+-----+----------+-----+------------------+--------------------+-------------------+-------------------+
+|lat |lon  |date      |month|sst_avg           |sst_anomaly         |sst_above_threshold|slp_tendency       |
++----+-----+----------+-----+------------------+--------------------+-------------------+-------------------+
+|0.25|123.5|1983-01-01|1    |28.81999969482422 |0.0                 |1                  |0.0                |
+|0.25|123.5|1983-01-02|1    |28.670000076293945|-0.07499980926513672|1                  |-15.526041666656965|
+|0.25|123.5|1983-01-03|1    |27.75             |-0.6633332570393868 |1                  |10.243055555562023 |
+|0.25|123.5|1983-01-04|1    |27.60999870300293 |-0.6025009155273438 |1                  |11.608072916671517 |
+|0.25|123.5|1983-01-05|1    |27.260000228881836|-0.7619995117187486 |1                  |17.173958333340124 |
++----+-----+----------+-----+------------------+--------------------+-------------------+-------------------+
+only showing top 5 rows
+26/03/22 14:09:56 WARN SparkStringUtils: Truncated the string representation of a plan since it was too large. This behavior can be adjusted by setting 'spark.sql.debug.maxToStringFields'.
+2026-03-22 14:09:56,104 [INFO]    Cached enriched dataset.
+
+2026-03-22 14:09:56,129 [INFO] ============================================================
+2026-03-22 14:09:56,130 [INFO] PHASE 2: Target Definition & Stratified Undersampling
+2026-03-22 14:09:56,130 [INFO] ============================================================
+26/03/22 14:26:10 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 217.5 MiB so far)
+26/03/22 14:26:10 WARN BlockManager: Persisting block rdd_27_5 to disk instead.
+26/03/22 14:26:15 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 243.9 MiB so far)
+26/03/22 14:26:15 WARN BlockManager: Persisting block rdd_27_4 to disk instead.
+26/03/22 14:26:19 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 325.3 MiB so far)
+26/03/22 14:26:19 WARN BlockManager: Persisting block rdd_27_1 to disk instead.
+26/03/22 14:26:19 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 299.4 MiB so far)
+26/03/22 14:26:19 WARN BlockManager: Persisting block rdd_27_6 to disk instead.
+26/03/22 14:26:20 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 298.3 MiB so far)
+26/03/22 14:26:20 WARN BlockManager: Persisting block rdd_27_7 to disk instead.
+26/03/22 14:26:22 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 326.3 MiB so far)
+26/03/22 14:26:22 WARN BlockManager: Persisting block rdd_27_8 to disk instead.
+26/03/22 14:26:32 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 501.2 MiB so far)
+26/03/22 14:26:32 WARN BlockManager: Persisting block rdd_27_0 to disk instead.
+26/03/22 14:26:34 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 928.7 MiB so far)
+26/03/22 14:26:34 WARN BlockManager: Persisting block rdd_27_9 to disk instead.
+26/03/22 14:26:34 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 505.2 MiB so far)
+26/03/22 14:26:34 WARN BlockManager: Persisting block rdd_27_2 to disk instead.
+26/03/22 14:26:43 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 501.2 MiB so far)
+26/03/22 14:26:43 WARN BlockManager: Persisting block rdd_27_3 to disk instead.
+26/03/22 14:30:58 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 502.3 MiB so far)
+26/03/22 14:31:39 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 501.2 MiB so far)
+26/03/22 14:31:42 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 709.3 MiB so far)
+26/03/22 14:31:45 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 326.3 MiB so far)
+26/03/22 14:31:46 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 134.7 MiB so far)
+26/03/22 14:31:46 WARN BlockManager: Persisting block rdd_27_10 to disk instead.
+26/03/22 14:31:48 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 1081.8 MiB so far)
+26/03/22 14:31:54 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 134.6 MiB so far)
+26/03/22 14:31:54 WARN BlockManager: Persisting block rdd_27_11 to disk instead.
+26/03/22 14:33:36 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 137.1 MiB so far)
+26/03/22 14:33:36 WARN BlockManager: Persisting block rdd_27_17 to disk instead.
+26/03/22 14:33:39 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 80.4 MiB so far)
+26/03/22 14:33:39 WARN BlockManager: Persisting block rdd_27_19 to disk instead.
+26/03/22 14:33:40 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 329.2 MiB so far)
+26/03/22 14:33:40 WARN BlockManager: Persisting block rdd_27_13 to disk instead.
+26/03/22 14:33:40 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 162.6 MiB so far)
+26/03/22 14:33:40 WARN BlockManager: Persisting block rdd_27_16 to disk instead.
+26/03/22 14:33:43 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 107.7 MiB so far)
+26/03/22 14:33:43 WARN BlockManager: Persisting block rdd_27_18 to disk instead.
+26/03/22 14:34:17 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 1078.3 MiB so far)
+26/03/22 14:34:17 WARN BlockManager: Persisting block rdd_27_12 to disk instead.
+26/03/22 14:34:37 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 505.1 MiB so far)
+26/03/22 14:34:37 WARN BlockManager: Persisting block rdd_27_15 to disk instead.
+26/03/22 14:36:50 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 54.7 MiB so far)
+26/03/22 14:36:50 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 134.6 MiB so far)
+26/03/22 14:36:50 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 765.9 MiB so far)
+26/03/22 14:38:29 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 765.3 MiB so far)
+26/03/22 14:39:19 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 381.8 MiB so far)
+26/03/22 14:39:20 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 1202.1 MiB so far)
+26/03/22 14:39:34 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 505.1 MiB so far)
+26/03/22 14:39:37 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 215.8 MiB so far)
+26/03/22 14:39:39 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 948.3 MiB so far)
+26/03/22 14:40:08 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 106.9 MiB so far)
+26/03/22 14:40:08 WARN BlockManager: Persisting block rdd_27_26 to disk instead.
+26/03/22 14:40:12 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 300.2 MiB so far)
+26/03/22 14:40:12 WARN BlockManager: Persisting block rdd_27_24 to disk instead.
+26/03/22 14:40:13 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 715.7 MiB so far)
+26/03/22 14:40:13 WARN BlockManager: Persisting block rdd_27_21 to disk instead.
+26/03/22 14:40:22 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 623.7 MiB so far)
+26/03/22 14:40:22 WARN BlockManager: Persisting block rdd_27_23 to disk instead.
+26/03/22 14:40:23 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 27.8 MiB so far)
+26/03/22 14:40:23 WARN BlockManager: Persisting block rdd_27_27 to disk instead.
+26/03/22 14:40:26 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 759.7 MiB so far)
+26/03/22 14:40:26 WARN BlockManager: Persisting block rdd_27_20 to disk instead.
+26/03/22 14:40:44 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 936.6 MiB so far)
+26/03/22 14:40:44 WARN BlockManager: Persisting block rdd_27_22 to disk instead.
+26/03/22 14:40:45 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 109.0 MiB so far)
+26/03/22 14:40:45 WARN BlockManager: Persisting block rdd_27_28 to disk instead.
+26/03/22 14:40:55 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 243.5 MiB so far)
+26/03/22 14:40:55 WARN BlockManager: Persisting block rdd_27_29 to disk instead.
+26/03/22 14:44:28 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 300.7 MiB so far)
+26/03/22 14:44:29 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 499.2 MiB so far)
+26/03/22 14:45:22 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 945.2 MiB so far)
+26/03/22 14:45:46 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 719.5 MiB so far)
+26/03/22 14:46:01 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 382.6 MiB so far)
+26/03/22 14:46:25 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 895.6 MiB so far)
+26/03/22 14:46:43 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 53.9 MiB so far)
+26/03/22 14:46:44 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 109.0 MiB so far)
+26/03/22 14:47:17 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 498.1 MiB so far)
+26/03/22 14:47:17 WARN BlockManager: Persisting block rdd_27_32 to disk instead.
+26/03/22 14:47:22 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 81.2 MiB so far)
+26/03/22 14:47:22 WARN BlockManager: Persisting block rdd_27_39 to disk instead.
+26/03/22 14:47:23 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 380.0 MiB so far)
+26/03/22 14:47:23 WARN BlockManager: Persisting block rdd_27_35 to disk instead.
+26/03/22 14:47:23 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 498.4 MiB so far)
+26/03/22 14:47:23 WARN BlockManager: Persisting block rdd_27_33 to disk instead.
+26/03/22 14:47:23 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 713.7 MiB so far)
+26/03/22 14:47:23 WARN BlockManager: Persisting block rdd_27_31 to disk instead.
+26/03/22 14:47:27 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 107.7 MiB so far)
+26/03/22 14:47:27 WARN BlockManager: Persisting block rdd_27_38 to disk instead.
+26/03/22 14:47:28 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 214.6 MiB so far)
+26/03/22 14:47:28 WARN BlockManager: Persisting block rdd_27_37 to disk instead.
+26/03/22 14:47:30 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 326.3 MiB so far)
+26/03/22 14:47:30 WARN BlockManager: Persisting block rdd_27_36 to disk instead.
+26/03/22 14:47:48 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 1081.4 MiB so far)
+26/03/22 14:47:48 WARN BlockManager: Persisting block rdd_27_30 to disk instead.
+26/03/22 14:51:34 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 300.6 MiB so far)
+26/03/22 14:52:36 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 53.0 MiB so far)
+26/03/22 14:52:36 WARN BlockManager: Persisting block rdd_27_42 to disk instead.
+26/03/22 14:52:37 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 55.1 MiB so far)
+26/03/22 14:52:37 WARN BlockManager: Persisting block rdd_27_43 to disk instead.
+26/03/22 14:52:40 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 53.9 MiB so far)
+26/03/22 14:53:07 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 1203.5 MiB so far)
+26/03/22 14:53:18 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 326.3 MiB so far)
+26/03/22 14:53:19 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 214.6 MiB so far)
+26/03/22 14:53:21 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 383.5 MiB so far)
+26/03/22 14:53:29 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 135.3 MiB so far)
+26/03/22 14:53:29 WARN BlockManager: Persisting block rdd_27_45 to disk instead.
+26/03/22 14:53:34 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 604.6 MiB so far)
+26/03/22 14:53:34 WARN BlockManager: Persisting block rdd_27_40 to disk instead.
+26/03/22 14:53:37 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 14:53:37 WARN BlockManager: Persisting block rdd_27_44 to disk instead.
+26/03/22 14:55:53 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 501.7 MiB so far)
+26/03/22 14:55:53 WARN BlockManager: Persisting block rdd_27_46 to disk instead.
+26/03/22 14:56:10 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 606.4 MiB so far)
+26/03/22 14:56:10 WARN BlockManager: Persisting block rdd_27_47 to disk instead.
+26/03/22 14:56:16 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 1351.8 MiB so far)
+26/03/22 14:56:16 WARN BlockManager: Persisting block rdd_27_41 to disk instead.
+26/03/22 14:57:34 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 1351.8 MiB so far)
+26/03/22 14:57:52 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 1083.4 MiB so far)
+26/03/22 14:58:05 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 106.5 MiB so far)
+26/03/22 14:58:05 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 1070.7 MiB so far)
+26/03/22 14:58:05 WARN BlockManager: Persisting block rdd_27_49 to disk instead.
+26/03/22 14:58:06 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 1147.7 MiB so far)
+26/03/22 14:58:55 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 327.1 MiB so far)
+26/03/22 14:59:11 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 1146.1 MiB so far)
+26/03/22 15:00:02 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 413.7 MiB so far)
+26/03/22 15:00:02 WARN BlockManager: Persisting block rdd_27_50 to disk instead.
+26/03/22 15:00:05 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 25.8 MiB so far)
+26/03/22 15:00:50 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 1429.6 MiB so far)
+26/03/22 15:01:05 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 710.3 MiB so far)
+26/03/22 15:01:24 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 325.9 MiB so far)
+26/03/22 15:01:24 WARN BlockManager: Persisting block rdd_27_56 to disk instead.
+26/03/22 15:01:25 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 498.8 MiB so far)
+26/03/22 15:01:25 WARN BlockManager: Persisting block rdd_27_52 to disk instead.
+26/03/22 15:01:28 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 500.3 MiB so far)
+26/03/22 15:01:28 WARN BlockManager: Persisting block rdd_27_51 to disk instead.
+26/03/22 15:01:30 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 217.4 MiB so far)
+26/03/22 15:01:30 WARN BlockManager: Persisting block rdd_27_57 to disk instead.
+26/03/22 15:01:35 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 109.8 MiB so far)
+26/03/22 15:01:35 WARN BlockManager: Persisting block rdd_27_59 to disk instead.
+26/03/22 15:01:40 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 496.7 MiB so far)
+26/03/22 15:01:40 WARN BlockManager: Persisting block rdd_27_54 to disk instead.
+26/03/22 15:01:43 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 215.8 MiB so far)
+26/03/22 15:01:43 WARN BlockManager: Persisting block rdd_27_58 to disk instead.
+26/03/22 15:01:44 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 463.0 MiB so far)
+26/03/22 15:01:44 WARN BlockManager: Persisting block rdd_27_55 to disk instead.
+26/03/22 15:04:35 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 1487.7 MiB so far)
+26/03/22 15:06:12 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 763.8 MiB so far)
+26/03/22 15:06:32 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 766.6 MiB so far)
+26/03/22 15:06:34 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 763.7 MiB so far)
+26/03/22 15:06:46 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 325.1 MiB so far)
+26/03/22 15:06:49 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 463.0 MiB so far)
+26/03/22 15:06:59 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 301.5 MiB so far)
+26/03/22 15:07:16 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 217.4 MiB so far)
+26/03/22 15:07:20 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 325.5 MiB so far)
+26/03/22 15:07:29 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 218.7 MiB so far)
+26/03/22 15:07:29 WARN BlockManager: Persisting block rdd_27_63 to disk instead.
+26/03/22 15:07:37 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 766.3 MiB so far)
+26/03/22 15:07:37 WARN BlockManager: Persisting block rdd_27_61 to disk instead.
+26/03/22 15:08:26 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 1200.4 MiB so far)
+26/03/22 15:08:26 WARN BlockManager: Persisting block rdd_27_60 to disk instead.
+26/03/22 15:09:33 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 766.3 MiB so far)
+26/03/22 15:09:44 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 769.0 MiB so far)
+26/03/22 15:10:08 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 1247.3 MiB so far)
+26/03/22 15:10:10 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 134.7 MiB so far)
+26/03/22 15:10:10 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 135.5 MiB so far)
+26/03/22 15:10:10 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 190.1 MiB so far)
+26/03/22 15:10:10 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 188.5 MiB so far)
+26/03/22 15:10:11 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 216.6 MiB so far)
+26/03/22 15:10:12 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 326.2 MiB so far)
+26/03/22 15:10:12 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 325.3 MiB so far)
+26/03/22 15:10:15 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 505.2 MiB so far)
+26/03/22 15:10:16 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 605.3 MiB so far)
+26/03/22 15:10:27 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 1420.8 MiB so far)
+26/03/22 15:10:31 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 136.6 MiB so far)
+26/03/22 15:10:31 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 107.7 MiB so far)
+26/03/22 15:10:31 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 191.2 MiB so far)
+26/03/22 15:10:31 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 191.4 MiB so far)
+26/03/22 15:10:32 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 217.4 MiB so far)
+26/03/22 15:10:32 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 328.0 MiB so far)
+26/03/22 15:10:34 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 325.5 MiB so far)
+26/03/22 15:10:35 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 502.3 MiB so far)
+26/03/22 15:10:40 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 768.0 MiB so far)
+26/03/22 15:10:49 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 1433.0 MiB so far)
+26/03/22 15:10:52 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 164.0 MiB so far)
+26/03/22 15:10:52 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 327.5 MiB so far)
+26/03/22 15:10:53 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 190.2 MiB so far)
+26/03/22 15:10:53 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 164.0 MiB so far)
+26/03/22 15:10:53 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 106.1 MiB so far)
+26/03/22 15:10:53 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 244.4 MiB so far)
+26/03/22 15:10:55 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 383.0 MiB so far)
+26/03/22 15:10:56 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 464.8 MiB so far)
+26/03/22 15:11:00 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 719.5 MiB so far)
+26/03/22 15:11:10 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 1368.1 MiB so far)
+26/03/22 15:11:13 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 107.6 MiB so far)
+26/03/22 15:11:14 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 53.7 MiB so far)
+26/03/22 15:11:14 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 135.0 MiB so far)
+26/03/22 15:11:14 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 217.0 MiB so far)
+26/03/22 15:11:14 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 219.5 MiB so far)
+26/03/22 15:11:15 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 214.6 MiB so far)
+26/03/22 15:11:16 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 245.2 MiB so far)
+26/03/22 15:11:17 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 463.9 MiB so far)
+26/03/22 15:11:19 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 719.2 MiB so far)
+26/03/22 15:11:28 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 1209.7 MiB so far)
+26/03/22 15:11:35 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 80.8 MiB so far)
+26/03/22 15:11:35 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 191.3 MiB so far)
+26/03/22 15:11:36 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 15:11:36 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 133.0 MiB so far)
+26/03/22 15:11:36 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 324.6 MiB so far)
+26/03/22 15:11:36 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 380.2 MiB so far)
+26/03/22 15:11:38 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 297.5 MiB so far)
+26/03/22 15:11:40 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 604.6 MiB so far)
+26/03/22 15:11:45 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 767.7 MiB so far)
+26/03/22 15:11:54 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 1429.6 MiB so far)
+26/03/22 15:11:56 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 80.5 MiB so far)
+26/03/22 15:11:57 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 215.8 MiB so far)
+26/03/22 15:11:57 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 77.6 MiB so far)
+26/03/22 15:11:57 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 215.8 MiB so far)
+26/03/22 15:11:57 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 326.7 MiB so far)
+26/03/22 15:11:58 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 299.0 MiB so far)
+26/03/22 15:12:00 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 500.3 MiB so far)
+26/03/22 15:12:01 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 624.9 MiB so far)
+26/03/22 15:12:06 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 715.3 MiB so far)
+26/03/22 15:12:13 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 1200.4 MiB so far)
+26/03/22 15:12:17 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 766.3 MiB so far)
+26/03/22 15:12:18 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 1247.3 MiB so far)
+26/03/22 15:12:20 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 135.5 MiB so far)
+26/03/22 15:12:20 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 160.7 MiB so far)
+26/03/22 15:12:21 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 188.5 MiB so far)
+26/03/22 15:12:21 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 217.0 MiB so far)
+26/03/22 15:12:21 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 216.2 MiB so far)
+26/03/22 15:12:22 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 298.3 MiB so far)
+26/03/22 15:12:22 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 327.1 MiB so far)
+26/03/22 15:12:25 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 501.2 MiB so far)
+26/03/22 15:12:25 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 499.3 MiB so far)
+26/03/22 15:12:37 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 1412.6 MiB so far)
+26/03/22 15:12:41 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 108.2 MiB so far)
+26/03/22 15:12:41 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 80.4 MiB so far)
+26/03/22 15:12:42 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 191.2 MiB so far)
+26/03/22 15:12:42 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 137.1 MiB so far)
+26/03/22 15:12:42 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 162.8 MiB so far)
+26/03/22 15:12:42 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 328.0 MiB so far)
+26/03/22 15:12:44 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 329.2 MiB so far)
+26/03/22 15:12:46 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 465.9 MiB so far)
+26/03/22 15:12:49 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 761.1 MiB so far)
+26/03/22 15:12:56 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 1201.1 MiB so far)
+26/03/22 15:13:02 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 106.9 MiB so far)
+26/03/22 15:13:02 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 27.0 MiB so far)
+26/03/22 15:13:03 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 327.5 MiB so far)
+26/03/22 15:13:03 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 109.0 MiB so far)
+26/03/22 15:13:03 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 190.2 MiB so far)
+26/03/22 15:13:03 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 300.7 MiB so far)
+26/03/22 15:13:05 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 383.0 MiB so far)
+26/03/22 15:13:07 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 468.2 MiB so far)
+26/03/22 15:13:09 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 574.1 MiB so far)
+26/03/22 15:13:19 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 1422.1 MiB so far)
+26/03/22 15:13:24 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 107.6 MiB so far)
+26/03/22 15:13:24 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 214.6 MiB so far)
+26/03/22 15:13:24 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 53.7 MiB so far)
+26/03/22 15:13:24 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 219.5 MiB so far)
+26/03/22 15:13:24 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 300.6 MiB so far)
+26/03/22 15:13:25 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 214.6 MiB so far)
+26/03/22 15:13:27 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 469.8 MiB so far)
+26/03/22 15:13:29 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 498.4 MiB so far)
+26/03/22 15:13:33 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 763.3 MiB so far)
+26/03/22 15:13:42 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 1423.5 MiB so far)
+26/03/22 15:13:45 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 242.3 MiB so far)
+26/03/22 15:13:46 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 135.3 MiB so far)
+26/03/22 15:13:46 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 15:13:46 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 134.2 MiB so far)
+26/03/22 15:13:46 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 299.0 MiB so far)
+26/03/22 15:13:47 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 189.6 MiB so far)
+26/03/22 15:13:47 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 245.6 MiB so far)
+26/03/22 15:13:49 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 500.0 MiB so far)
+26/03/22 15:13:54 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 917.3 MiB so far)
+26/03/22 15:14:01 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 1201.1 MiB so far)
+26/03/22 15:14:06 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 133.4 MiB so far)
+26/03/22 15:14:07 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 215.8 MiB so far)
+26/03/22 15:14:07 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 77.6 MiB so far)
+26/03/22 15:14:07 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 325.3 MiB so far)
+26/03/22 15:14:08 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 217.4 MiB so far)
+26/03/22 15:14:08 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 299.0 MiB so far)
+26/03/22 15:14:10 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 498.8 MiB so far)
+26/03/22 15:14:11 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 624.9 MiB so far)
+26/03/22 15:14:16 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 715.3 MiB so far)
+26/03/22 15:14:24 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 1200.4 MiB so far)
+26/03/22 15:14:27 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 766.3 MiB so far)
+26/03/22 15:14:28 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 1247.3 MiB so far)
+2026-03-22 15:14:28,847 [INFO]    Full dataset: 34,595 positives, 597,458,723 negatives
+2026-03-22 15:14:28,847 [INFO]    Imbalance ratio: 1:17270
+26/03/22 15:14:30 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 134.7 MiB so far)
+26/03/22 15:14:30 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 135.5 MiB so far)
+26/03/22 15:14:48 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 298.3 MiB so far)
+26/03/22 15:14:48 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 299.4 MiB so far)
+26/03/22 15:14:48 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 325.3 MiB so far)
+26/03/22 15:14:51 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 499.3 MiB so far)
+26/03/22 15:15:24 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 931.6 MiB so far)
+26/03/22 15:15:26 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 1200.9 MiB so far)
+26/03/22 15:15:34 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 1420.8 MiB so far)
+26/03/22 15:15:37 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 137.1 MiB so far)
+26/03/22 15:15:37 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 162.6 MiB so far)
+26/03/22 15:15:38 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 465.8 MiB so far)
+26/03/22 15:15:38 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 502.6 MiB so far)
+26/03/22 15:15:40 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 765.9 MiB so far)
+26/03/22 15:15:45 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 503.0 MiB so far)
+26/03/22 15:15:47 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 1191.6 MiB so far)
+26/03/22 15:15:50 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 1201.1 MiB so far)
+26/03/22 15:15:55 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 327.5 MiB so far)
+26/03/22 15:15:55 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 1424.7 MiB so far)
+26/03/22 15:15:58 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 244.4 MiB so far)
+26/03/22 15:15:59 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 299.4 MiB so far)
+26/03/22 15:15:59 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 609.6 MiB so far)
+26/03/22 15:16:01 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 715.7 MiB so far)
+26/03/22 15:16:03 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 243.5 MiB so far)
+26/03/22 15:16:04 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 719.5 MiB so far)
+26/03/22 15:16:07 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 612.7 MiB so far)
+26/03/22 15:16:11 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 1422.1 MiB so far)
+26/03/22 15:16:17 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 214.6 MiB so far)
+26/03/22 15:16:17 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 299.4 MiB so far)
+26/03/22 15:16:19 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 52.1 MiB so far)
+26/03/22 15:16:19 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 162.0 MiB so far)
+26/03/22 15:16:20 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 356.1 MiB so far)
+26/03/22 15:16:20 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 463.9 MiB so far)
+26/03/22 15:16:28 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 763.3 MiB so far)
+26/03/22 15:16:29 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 1147.3 MiB so far)
+26/03/22 15:16:36 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 109.4 MiB so far)
+26/03/22 15:16:37 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 134.2 MiB so far)
+26/03/22 15:16:38 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 243.5 MiB so far)
+26/03/22 15:16:39 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 1203.5 MiB so far)
+26/03/22 15:16:40 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 15:16:42 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 570.5 MiB so far)
+26/03/22 15:16:44 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 327.6 MiB so far)
+26/03/22 15:16:46 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 324.4 MiB so far)
+26/03/22 15:16:46 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 504.5 MiB so far)
+26/03/22 15:16:50 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 462.2 MiB so far)
+26/03/22 15:16:57 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 80.2 MiB so far)
+26/03/22 15:16:57 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 53.1 MiB so far)
+26/03/22 15:17:02 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 133.8 MiB so far)
+26/03/22 15:17:06 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 132.5 MiB so far)
+26/03/22 15:17:07 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 325.9 MiB so far)
+26/03/22 15:17:07 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 326.7 MiB so far)
+26/03/22 15:17:09 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 957.5 MiB so far)
+26/03/22 15:17:12 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 466.5 MiB so far)
+26/03/22 15:17:16 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 1416.1 MiB so far)
+26/03/22 15:17:21 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 326.9 MiB so far)
+26/03/22 15:17:22 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 352.5 MiB so far)
+26/03/22 15:17:24 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 769.0 MiB so far)
+26/03/22 15:17:26 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 1153.8 MiB so far)
+2026-03-22 15:17:29,306 [INFO]    Negatives per month (before sampling):        
+2026-03-22 15:17:29,307 [INFO]       Month  1:   52,201,783
+2026-03-22 15:17:29,307 [INFO]       Month  2:   46,104,070
+2026-03-22 15:17:29,308 [INFO]       Month  3:   50,570,705
+2026-03-22 15:17:29,308 [INFO]       Month  4:   48,939,041
+2026-03-22 15:17:29,308 [INFO]       Month  5:   50,569,574
+2026-03-22 15:17:29,308 [INFO]       Month  6:   48,937,030
+2026-03-22 15:17:29,308 [INFO]       Month  7:   50,566,190
+2026-03-22 15:17:29,308 [INFO]       Month  8:   50,565,414
+2026-03-22 15:17:29,308 [INFO]       Month  9:   48,934,009
+2026-03-22 15:17:29,308 [INFO]       Month 10:   50,565,917
+2026-03-22 15:17:29,308 [INFO]       Month 11:   48,935,989
+2026-03-22 15:17:29,308 [INFO]       Month 12:   50,569,001
+2026-03-22 15:17:29,308 [INFO]    Target 1:20 → need 691,900 negatives total
+2026-03-22 15:17:29,308 [INFO]    Per-month sampling fractions (proportional stratification):
+2026-03-22 15:17:29,308 [INFO]       Month  1: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  2: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  3: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  4: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  5: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  6: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  7: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  8: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month  9: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month 10: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month 11: 0.001158
+2026-03-22 15:17:29,308 [INFO]       Month 12: 0.001158
+26/03/22 15:17:31 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 135.5 MiB so far)
+26/03/22 15:17:31 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 134.2 MiB so far)
+26/03/22 15:17:32 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 190.1 MiB so far)
+26/03/22 15:17:32 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 188.5 MiB so far)
+26/03/22 15:17:32 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 216.6 MiB so far)
+26/03/22 15:17:32 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 243.5 MiB so far)
+26/03/22 15:17:33 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 327.1 MiB so far)
+26/03/22 15:17:36 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 501.2 MiB so far)
+26/03/22 15:17:36 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 501.2 MiB so far)
+26/03/22 15:17:48 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 1412.6 MiB so far)
+26/03/22 15:17:52 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 80.4 MiB so far)
+26/03/22 15:17:52 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 108.2 MiB so far)
+26/03/22 15:17:52 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 191.2 MiB so far)
+26/03/22 15:17:53 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 191.4 MiB so far)
+26/03/22 15:17:53 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 328.0 MiB so far)
+26/03/22 15:17:54 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 217.4 MiB so far)
+26/03/22 15:17:55 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 271.7 MiB so far)
+26/03/22 15:17:56 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 502.3 MiB so far)
+26/03/22 15:18:01 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 765.3 MiB so far)
+26/03/22 15:18:07 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 1201.1 MiB so far)
+26/03/22 15:18:13 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 106.9 MiB so far)
+26/03/22 15:18:13 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 108.1 MiB so far)
+26/03/22 15:18:14 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 327.5 MiB so far)
+26/03/22 15:18:14 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 190.2 MiB so far)
+26/03/22 15:18:14 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 272.5 MiB so far)
+26/03/22 15:18:15 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 300.2 MiB so far)
+26/03/22 15:18:16 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 243.5 MiB so far)
+26/03/22 15:18:17 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 464.8 MiB so far)
+26/03/22 15:18:21 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 612.7 MiB so far)
+26/03/22 15:18:31 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 1421.8 MiB so far)
+26/03/22 15:18:35 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 299.4 MiB so far)
+26/03/22 15:18:36 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 217.0 MiB so far)
+26/03/22 15:18:36 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 162.0 MiB so far)
+26/03/22 15:18:36 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 300.6 MiB so far)
+26/03/22 15:18:37 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 214.6 MiB so far)
+26/03/22 15:18:38 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 356.1 MiB so far)
+26/03/22 15:18:39 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 328.4 MiB so far)
+26/03/22 15:18:40 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 498.1 MiB so far)
+26/03/22 15:18:45 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 763.3 MiB so far)
+26/03/22 15:18:54 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 1423.5 MiB so far)
+26/03/22 15:18:57 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 191.3 MiB so far)
+26/03/22 15:18:57 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 27.6 MiB so far)
+26/03/22 15:18:57 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 78.0 MiB so far)
+26/03/22 15:18:57 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 15:18:58 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 324.6 MiB so far)
+26/03/22 15:18:58 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 380.2 MiB so far)
+26/03/22 15:19:00 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 297.5 MiB so far)
+26/03/22 15:19:02 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 604.6 MiB so far)
+26/03/22 15:19:06 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 766.5 MiB so far)
+26/03/22 15:19:12 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 1215.2 MiB so far)
+26/03/22 15:19:18 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 135.1 MiB so far)
+26/03/22 15:19:18 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 132.5 MiB so far)
+26/03/22 15:19:18 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 325.3 MiB so far)
+26/03/22 15:19:19 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 215.8 MiB so far)
+26/03/22 15:19:19 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 135.3 MiB so far)
+26/03/22 15:19:19 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 383.9 MiB so far)
+26/03/22 15:19:21 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 498.8 MiB so far)
+26/03/22 15:19:23 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 466.5 MiB so far)
+26/03/22 15:19:26 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 501.5 MiB so far)
+26/03/22 15:19:31 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 1148.6 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 135.5 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 106.8 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 80.5 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 216.2 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 26.6 MiB so far)
+26/03/22 15:19:39 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 326.3 MiB so far)
+26/03/22 15:19:42 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 501.2 MiB so far)
+26/03/22 15:19:42 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 533.7 MiB so far)
+26/03/22 15:19:46 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 765.8 MiB so far)
+26/03/22 15:19:55 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 53.5 MiB so far)
+26/03/22 15:19:56 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 52.7 MiB so far)
+26/03/22 15:19:56 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 25.2 MiB so far)
+26/03/22 15:19:56 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 53.5 MiB so far)
+26/03/22 15:19:59 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 27.8 MiB so far)
+26/03/22 15:19:59 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 54.7 MiB so far)
+26/03/22 15:19:59 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 27.4 MiB so far)
+26/03/22 15:19:59 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 53.9 MiB so far)
+26/03/22 15:20:01 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 162.6 MiB so far)
+26/03/22 15:20:04 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 137.1 MiB so far)
+26/03/22 15:20:17 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 27.4 MiB so far)
+26/03/22 15:20:17 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 26.2 MiB so far)
+26/03/22 15:20:17 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 162.8 MiB so far)
+26/03/22 15:20:19 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 27.8 MiB so far)
+26/03/22 15:20:19 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 27.4 MiB so far)
+26/03/22 15:20:20 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 191.4 MiB so far)
+26/03/22 15:20:21 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 55.6 MiB so far)
+26/03/22 15:20:21 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 109.8 MiB so far)
+26/03/22 15:20:23 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 162.0 MiB so far)
+26/03/22 15:20:25 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 162.4 MiB so far)
+26/03/22 15:20:39 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 27.0 MiB so far)
+26/03/22 15:20:39 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 164.0 MiB so far)
+26/03/22 15:20:39 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 27.8 MiB so far)
+26/03/22 15:20:41 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 53.5 MiB so far)
+26/03/22 15:20:41 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 27.4 MiB so far)
+26/03/22 15:20:41 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 108.6 MiB so far)
+26/03/22 15:20:42 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 134.7 MiB so far)
+26/03/22 15:20:44 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 107.6 MiB so far)
+26/03/22 15:20:44 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 80.2 MiB so far)
+26/03/22 15:20:46 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 132.6 MiB so far)
+26/03/22 15:20:59 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 107.7 MiB so far)
+26/03/22 15:21:00 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 54.3 MiB so far)
+26/03/22 15:21:00 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 135.9 MiB so far)
+26/03/22 15:21:01 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 53.0 MiB so far)
+26/03/22 15:21:02 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 105.3 MiB so far)
+26/03/22 15:21:03 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 26.0 MiB so far)
+26/03/22 15:21:03 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 191.3 MiB so far)
+26/03/22 15:21:05 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 53.1 MiB so far)
+26/03/22 15:21:05 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 135.3 MiB so far)
+26/03/22 15:21:09 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 133.0 MiB so far)
+26/03/22 15:21:20 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 108.6 MiB so far)
+26/03/22 15:21:21 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 25.2 MiB so far)
+26/03/22 15:21:22 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 164.8 MiB so far)
+26/03/22 15:21:22 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 27.0 MiB so far)
+26/03/22 15:21:23 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 108.1 MiB so far)
+26/03/22 15:21:23 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 80.4 MiB so far)
+26/03/22 15:21:25 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 133.4 MiB so far)
+26/03/22 15:21:27 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 50.9 MiB so far)
+26/03/22 15:21:27 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 135.1 MiB so far)
+26/03/22 15:21:33 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 192.2 MiB so far)
+26/03/22 15:21:40 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 81.0 MiB so far)
+26/03/22 15:21:41 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 134.7 MiB so far)
+26/03/22 15:21:43 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 53.9 MiB so far)
+26/03/22 15:21:43 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 135.1 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 27.0 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 26.6 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 26.2 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 26.6 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 27.4 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 53.5 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 53.5 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 53.5 MiB so far)
+26/03/22 15:21:52 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 53.5 MiB so far)
+26/03/22 15:21:55 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 134.7 MiB so far)
+26/03/22 15:22:12 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 80.0 MiB so far)
+26/03/22 15:22:12 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 109.4 MiB so far)
+26/03/22 15:22:12 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 54.7 MiB so far)
+26/03/22 15:22:13 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 53.9 MiB so far)
+26/03/22 15:22:13 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 27.8 MiB so far)
+26/03/22 15:22:13 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 26.6 MiB so far)
+26/03/22 15:22:13 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 109.4 MiB so far)
+26/03/22 15:22:13 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 27.4 MiB so far)
+26/03/22 15:22:14 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 162.6 MiB so far)
+26/03/22 15:22:17 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 134.2 MiB so far)
+26/03/22 15:22:33 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 53.8 MiB so far)
+26/03/22 15:22:33 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 110.2 MiB so far)
+26/03/22 15:22:34 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 27.8 MiB so far)
+26/03/22 15:22:34 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 28.0 MiB so far)
+26/03/22 15:22:34 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 25.8 MiB so far)
+26/03/22 15:22:34 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 27.8 MiB so far)
+26/03/22 15:22:34 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 164.0 MiB so far)
+26/03/22 15:22:36 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 109.0 MiB so far)
+26/03/22 15:22:37 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 27.8 MiB so far)
+26/03/22 15:22:37 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 160.7 MiB so far)
+26/03/22 15:22:55 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 53.5 MiB so far)
+26/03/22 15:22:55 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 27.4 MiB so far)
+26/03/22 15:22:55 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 53.5 MiB so far)
+26/03/22 15:22:56 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 27.6 MiB so far)
+26/03/22 15:22:56 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 190.1 MiB so far)
+26/03/22 15:22:56 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 27.0 MiB so far)
+26/03/22 15:22:56 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 26.2 MiB so far)
+26/03/22 15:22:58 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 81.2 MiB so far)
+26/03/22 15:22:58 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 107.7 MiB so far)
+26/03/22 15:23:01 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 160.3 MiB so far)
+26/03/22 15:23:16 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 53.0 MiB so far)
+26/03/22 15:23:16 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 105.3 MiB so far)
+26/03/22 15:23:17 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 26.0 MiB so far)
+26/03/22 15:23:17 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 191.3 MiB so far)
+26/03/22 15:23:18 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 27.4 MiB so far)
+26/03/22 15:23:18 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 25.8 MiB so far)
+26/03/22 15:23:18 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 78.0 MiB so far)
+26/03/22 15:23:19 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 108.6 MiB so far)
+26/03/22 15:23:23 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 164.8 MiB so far)
+26/03/22 15:23:23 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 25.2 MiB so far)
+26/03/22 15:23:36 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 25.8 MiB so far)
+26/03/22 15:23:36 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 54.7 MiB so far)
+26/03/22 15:23:36 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 135.5 MiB so far)
+26/03/22 15:23:39 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 53.5 MiB so far)
+26/03/22 15:23:39 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 133.4 MiB so far)
+26/03/22 15:23:40 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 132.5 MiB so far)
+26/03/22 15:23:41 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 55.6 MiB so far)
+26/03/22 15:23:45 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 53.5 MiB so far)
+26/03/22 15:23:47 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 135.3 MiB so far)
+26/03/22 15:23:54 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 135.1 MiB so far)
+26/03/22 15:24:05 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 135.9 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 26.6 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 26.6 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 27.4 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 26.2 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 27.0 MiB so far)
+26/03/22 15:24:10 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 26.6 MiB so far)
+26/03/22 15:24:15 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 53.5 MiB so far)
+26/03/22 15:24:19 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 768.3 MiB so far)
+26/03/22 15:24:25 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 1200.9 MiB so far)
+26/03/22 15:24:27 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 1420.8 MiB so far)
+26/03/22 15:24:34 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 134.6 MiB so far)
+26/03/22 15:24:34 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 217.4 MiB so far)
+26/03/22 15:24:35 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 502.3 MiB so far)
+26/03/22 15:24:35 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 26.2 MiB so far)
+26/03/22 15:24:36 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 381.8 MiB so far)
+26/03/22 15:24:40 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 765.3 MiB so far)
+26/03/22 15:24:40 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 766.2 MiB so far)
+26/03/22 15:24:44 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 1081.7 MiB so far)
+26/03/22 15:24:54 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 191.8 MiB so far)
+26/03/22 15:24:54 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 106.9 MiB so far)
+26/03/22 15:24:54 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 108.1 MiB so far)
+26/03/22 15:24:54 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 190.2 MiB so far)
+26/03/22 15:24:58 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 715.7 MiB so far)
+26/03/22 15:24:58 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 243.5 MiB so far)
+26/03/22 15:24:58 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 190.1 MiB so far)
+26/03/22 15:25:02 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 936.6 MiB so far)
+26/03/22 15:25:10 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 1422.1 MiB so far)
+26/03/22 15:25:12 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 1423.7 MiB so far)
+26/03/22 15:25:12 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 108.6 MiB so far)
+26/03/22 15:25:12 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 53.5 MiB so far)
+26/03/22 15:25:21 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 764.8 MiB so far)
+26/03/22 15:25:21 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 570.7 MiB so far)
+26/03/22 15:25:21 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 497.5 MiB so far)
+26/03/22 15:25:21 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 328.4 MiB so far)
+26/03/22 15:25:28 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 934.9 MiB so far)
+26/03/22 15:25:30 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 917.3 MiB so far)
+26/03/22 15:25:36 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 380.2 MiB so far)
+26/03/22 15:25:36 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 299.0 MiB so far)
+26/03/22 15:25:36 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 25.8 MiB so far)
+26/03/22 15:25:36 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 52.9 MiB so far)
+26/03/22 15:25:36 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 216.6 MiB so far)
+26/03/22 15:25:39 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 762.6 MiB so far)
+26/03/22 15:25:40 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 108.6 MiB so far)
+26/03/22 15:25:40 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 1501.8 KiB so far)
+26/03/22 15:25:53 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 1201.1 MiB so far)
+26/03/22 15:25:54 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 215.8 MiB so far)
+26/03/22 15:25:54 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 162.6 MiB so far)
+26/03/22 15:26:01 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 763.8 MiB so far)
+26/03/22 15:26:02 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 215.8 MiB so far)
+26/03/22 15:26:02 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 496.7 MiB so far)
+26/03/22 15:26:02 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 26.2 MiB so far)
+26/03/22 15:26:02 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 192.2 MiB so far)
+26/03/22 15:26:14 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 53.5 MiB so far)
+26/03/22 15:26:14 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 1210.5 MiB so far)
+26/03/22 15:26:14 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 80.8 MiB so far)
+26/03/22 15:26:15 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 81.6 MiB so far)
+2026-03-22 15:26:23,750 [INFO]    Negatives per month (after sampling):         
+2026-03-22 15:26:23,750 [INFO]       Month  1:     60,479
+2026-03-22 15:26:23,750 [INFO]       Month  2:     53,363
+2026-03-22 15:26:23,750 [INFO]       Month  3:     58,597
+2026-03-22 15:26:23,750 [INFO]       Month  4:     56,921
+2026-03-22 15:26:23,750 [INFO]       Month  5:     58,843
+2026-03-22 15:26:23,750 [INFO]       Month  6:     57,113
+2026-03-22 15:26:23,750 [INFO]       Month  7:     58,474
+2026-03-22 15:26:23,750 [INFO]       Month  8:     58,787
+2026-03-22 15:26:23,750 [INFO]       Month  9:     56,676
+2026-03-22 15:26:23,751 [INFO]       Month 10:     58,671
+2026-03-22 15:26:23,751 [INFO]       Month 11:     56,403
+2026-03-22 15:26:23,751 [INFO]       Month 12:     58,392
+2026-03-22 15:26:23,751 [INFO]    ✅ Training base: 34,595 positives, 692,719 negatives
+2026-03-22 15:26:23,751 [INFO]       Effective ratio: 1:20
+2026-03-22 15:26:23,751 [INFO]    Phase 2 complete in 4588s
+2026-03-22 15:26:23,771 [INFO]    Cached training base.
+
+2026-03-22 15:26:23,822 [INFO] ============================================================
+2026-03-22 15:26:23,822 [INFO] PHASE 3: Time-Based Split
+2026-03-22 15:26:23,822 [INFO] ============================================================
+26/03/22 15:26:25 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 134.7 MiB so far)
+26/03/22 15:26:26 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 160.7 MiB so far)
+26/03/22 15:26:26 WARN MemoryStore: Not enough space to cache rdd_27_7 in memory! (computed 190.1 MiB so far)
+26/03/22 15:26:26 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 188.5 MiB so far)
+26/03/22 15:26:26 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 217.5 MiB so far)
+26/03/22 15:26:26 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 216.2 MiB so far)
+26/03/22 15:26:28 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 327.1 MiB so far)
+26/03/22 15:26:30 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 501.2 MiB so far)
+26/03/22 15:26:30 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 499.3 MiB so far)
+26/03/22 15:26:42 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 1412.6 MiB so far)
+26/03/22 15:26:46 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 243.5 MiB so far)
+26/03/22 15:26:46 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 80.4 MiB so far)
+26/03/22 15:26:46 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 106.8 MiB so far)
+26/03/22 15:26:47 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 217.5 MiB so far)
+26/03/22 15:26:47 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 188.5 MiB so far)
+26/03/22 15:26:47 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 135.5 MiB so far)
+26/03/22 15:26:47 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 325.3 MiB so far)
+26/03/22 15:26:51 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 501.2 MiB so far)
+26/03/22 15:26:52 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 501.2 MiB so far)
+26/03/22 15:27:04 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 25.2 MiB so far)
+26/03/22 15:27:04 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 53.5 MiB so far)
+26/03/22 15:27:06 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 54.7 MiB so far)
+26/03/22 15:27:07 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 109.4 MiB so far)
+26/03/22 15:27:07 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 109.4 MiB so far)
+26/03/22 15:27:07 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 27.0 MiB so far)
+26/03/22 15:27:12 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 327.1 MiB so far)
+26/03/22 15:27:12 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 325.5 MiB so far)
+26/03/22 15:27:17 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 766.2 MiB so far)
+26/03/22 15:27:22 WARN MemoryStore: Not enough space to cache rdd_27_11 in memory! (computed 216.7 MiB so far)
+26/03/22 15:27:24 WARN MemoryStore: Not enough space to cache rdd_27_10 in memory! (computed 217.4 MiB so far)
+26/03/22 15:27:25 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 218.7 MiB so far)
+26/03/22 15:27:26 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 54.7 MiB so far)
+26/03/22 15:27:26 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 1424.7 MiB so far)
+26/03/22 15:27:29 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 54.3 MiB so far)
+26/03/22 15:27:29 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 134.6 MiB so far)
+26/03/22 15:27:29 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 301.1 MiB so far)
+26/03/22 15:27:30 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 327.2 MiB so far)
+26/03/22 15:27:30 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 327.1 MiB so far)
+26/03/22 15:27:34 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 300.7 MiB so far)
+26/03/22 15:27:37 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 759.7 MiB so far)
+26/03/22 15:27:40 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 1433.0 MiB so far)
+26/03/22 15:27:42 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 246.0 MiB so far)
+26/03/22 15:27:49 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 108.1 MiB so far)
+26/03/22 15:27:49 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 190.2 MiB so far)
+26/03/22 15:27:49 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 27.0 MiB so far)
+26/03/22 15:27:49 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 54.6 MiB so far)
+26/03/22 15:27:50 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 468.2 MiB so far)
+26/03/22 15:27:51 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 623.7 MiB so far)
+26/03/22 15:27:54 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 759.7 MiB so far)
+26/03/22 15:27:54 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 300.7 MiB so far)
+26/03/22 15:28:00 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 190.1 MiB so far)
+26/03/22 15:28:00 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 246.0 MiB so far)
+26/03/22 15:28:00 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 54.7 MiB so far)
+26/03/22 15:28:04 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 109.0 MiB so far)
+26/03/22 15:28:05 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 1421.4 MiB so far)
+26/03/22 15:28:05 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 109.8 MiB so far)
+26/03/22 15:28:10 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 463.3 MiB so far)
+26/03/22 15:28:10 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 498.1 MiB so far)
+26/03/22 15:28:12 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 382.6 MiB so far)
+26/03/22 15:28:14 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 384.1 MiB so far)
+26/03/22 15:28:14 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 574.1 MiB so far)
+26/03/22 15:28:15 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 606.8 MiB so far)
+26/03/22 15:28:23 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 53.5 MiB so far)
+26/03/22 15:28:23 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 469.8 MiB so far)
+26/03/22 15:28:23 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 763.1 MiB so far)
+26/03/22 15:28:25 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 1082.3 MiB so far)
+26/03/22 15:28:27 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 243.2 MiB so far)
+26/03/22 15:28:31 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 217.0 MiB so far)
+26/03/22 15:28:32 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 245.2 MiB so far)
+26/03/22 15:28:32 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 323.4 MiB so far)
+26/03/22 15:28:33 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 837.5 MiB so far)
+26/03/22 15:28:33 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 217.0 MiB so far)
+26/03/22 15:28:38 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 604.6 MiB so far)
+26/03/22 15:28:40 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 242.3 MiB so far)
+26/03/22 15:28:42 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 55.1 MiB so far)
+26/03/22 15:28:43 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 53.9 MiB so far)
+26/03/22 15:28:44 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 1203.5 MiB so far)
+26/03/22 15:28:45 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 54.2 MiB so far)
+26/03/22 15:28:49 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 245.2 MiB so far)
+26/03/22 15:28:49 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 52.1 MiB so far)
+26/03/22 15:28:49 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 27.6 MiB so far)
+26/03/22 15:28:51 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 327.1 MiB so far)
+26/03/22 15:28:52 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 1147.7 MiB so far)
+26/03/22 15:28:52 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 326.3 MiB so far)
+26/03/22 15:28:53 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 160.3 MiB so far)
+26/03/22 15:29:01 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 216.2 MiB so far)
+26/03/22 15:29:03 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 766.5 MiB so far)
+26/03/22 15:29:04 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 885.1 MiB so far)
+26/03/22 15:29:04 WARN MemoryStore: Not enough space to cache rdd_27_43 in memory! (computed 712.4 MiB so far)
+26/03/22 15:29:06 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 53.9 MiB so far)
+26/03/22 15:29:12 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 501.7 MiB so far)
+26/03/22 15:29:13 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 383.4 MiB so far)
+26/03/22 15:29:14 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 217.4 MiB so far)
+26/03/22 15:29:14 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 134.2 MiB so far)
+26/03/22 15:29:16 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 413.7 MiB so far)
+26/03/22 15:29:19 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 766.4 MiB so far)
+26/03/22 15:29:19 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 217.0 MiB so far)
+26/03/22 15:29:23 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 108.6 MiB so far)
+26/03/22 15:29:24 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 1070.7 MiB so far)
+26/03/22 15:29:24 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 383.9 MiB so far)
+26/03/22 15:29:31 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 162.8 MiB so far)
+26/03/22 15:29:31 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 108.6 MiB so far)
+26/03/22 15:29:32 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 760.8 MiB so far)
+26/03/22 15:29:33 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 957.5 MiB so far)
+26/03/22 15:29:33 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 501.7 MiB so far)
+26/03/22 15:29:34 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 215.4 MiB so far)
+26/03/22 15:29:34 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 52.7 MiB so far)
+26/03/22 15:29:37 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 1153.5 MiB so far)
+26/03/22 15:29:40 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 53.5 MiB so far)
+26/03/22 15:29:40 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 108.6 MiB so far)
+26/03/22 15:29:40 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 383.9 MiB so far)
+26/03/22 15:29:41 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 133.8 MiB so far)
+26/03/22 15:29:49 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 216.6 MiB so far)
+26/03/22 15:29:50 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 466.5 MiB so far)
+26/03/22 15:29:52 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 760.0 MiB so far)
+26/03/22 15:29:55 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 352.5 MiB so far)
+26/03/22 15:29:57 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 499.9 MiB so far)
+26/03/22 15:29:58 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 496.9 MiB so far)
+26/03/22 15:30:00 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 1205.6 MiB so far)
+26/03/22 15:30:00 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 215.8 MiB so far)
+26/03/22 15:30:00 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 301.5 MiB so far)
+26/03/22 15:30:03 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 217.0 MiB so far)
+26/03/22 15:30:03 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 135.9 MiB so far)
+26/03/22 15:30:03 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 216.6 MiB so far)
+26/03/22 15:30:03 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 1200.4 MiB so far)
+2026-03-22 15:30:10,259 [INFO]    Train (≤ 2015): 571,158 rows                  
+2026-03-22 15:30:10,259 [INFO]    Val (2016–2019): 69,840 rows
+2026-03-22 15:30:10,259 [INFO]    Test (≥ 2020):  86,316 rows
+2026-03-22 15:30:10,567 [INFO]    Train: 27,601 pos / 543,557 neg (1:19)
+2026-03-22 15:30:10,893 [INFO]    Val: 3,339 pos / 66,501 neg (1:19)
+2026-03-22 15:30:11,176 [INFO]    Test: 3,655 pos / 82,661 neg (1:22)
+2026-03-22 15:30:11,276 [INFO] ============================================================
+2026-03-22 15:30:11,276 [INFO] PHASE 4: Micro-Level Probability Classifier (LightGBM)
+2026-03-22 15:30:11,276 [INFO] ============================================================
+2026-03-22 15:30:11,276 [INFO]    Step 1: Converting Spark DataFrames to Pandas...
+2026-03-22 15:30:12,805 [INFO]    Train: 571,158, Val: 69,840, Test: 86,316
+2026-03-22 15:30:12,805 [INFO]    Step 2: Imputing missing values (train-set means)...
+2026-03-22 15:30:13,081 [INFO]    Remaining NaNs in train: 0
+2026-03-22 15:30:13,124 [INFO]    Step 3: Training LightGBM...
+2026-03-22 15:30:13,124 [INFO]    Params: max_depth=8, num_leaves=63, is_unbalance=True
+[20]	train's auc: 0.991223	train's average_precision: 0.842732	val's auc: 0.987328	val's average_precision: 0.822007
+[40]	train's auc: 0.993292	train's average_precision: 0.876893	val's auc: 0.989112	val's average_precision: 0.852125
+[60]	train's auc: 0.994886	train's average_precision: 0.903214	val's auc: 0.990185	val's average_precision: 0.865813
+[80]	train's auc: 0.995859	train's average_precision: 0.919508	val's auc: 0.990827	val's average_precision: 0.877643
+[100]	train's auc: 0.99656	train's average_precision: 0.931131	val's auc: 0.991094	val's average_precision: 0.882324
+[120]	train's auc: 0.997087	train's average_precision: 0.940086	val's auc: 0.991314	val's average_precision: 0.884879
+[140]	train's auc: 0.997496	train's average_precision: 0.94689	val's auc: 0.991306	val's average_precision: 0.885839
+[160]	train's auc: 0.997823	train's average_precision: 0.952816	val's auc: 0.991449	val's average_precision: 0.887845
+[180]	train's auc: 0.998083	train's average_precision: 0.957764	val's auc: 0.991409	val's average_precision: 0.887812
+[200]	train's auc: 0.998325	train's average_precision: 0.96265	val's auc: 0.991362	val's average_precision: 0.887533
+2026-03-22 15:30:24,664 [INFO]    ✅ Model trained! Best iteration: 0
+2026-03-22 15:30:24,674 [INFO]    Model saved to: /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/lgbm_storm_classifier.pkl
+2026-03-22 15:30:24,841 [INFO] 
+   📊 Validation Results:
+2026-03-22 15:30:24,842 [INFO]       ROC-AUC : 0.9914
+2026-03-22 15:30:24,842 [INFO]       AUPRC   : 0.8875
+2026-03-22 15:30:25,027 [INFO] 
+   📊 Test Results:
+2026-03-22 15:30:25,027 [INFO]       ROC-AUC : 0.9915
+2026-03-22 15:30:25,027 [INFO]       AUPRC   : 0.8794
+2026-03-22 15:30:25,027 [INFO] 
+   🌟 Top 10 Feature Importances (gain):
+2026-03-22 15:30:25,027 [INFO]       slp_avg                      3626750.8
+2026-03-22 15:30:25,027 [INFO]       lon                          1985665.3
+2026-03-22 15:30:25,027 [INFO]       slp_tendency                  392091.0
+2026-03-22 15:30:25,027 [INFO]       lat                           388157.2
+2026-03-22 15:30:25,027 [INFO]       v_wind_avg                    242446.4
+2026-03-22 15:30:25,027 [INFO]       month                         204843.7
+2026-03-22 15:30:25,027 [INFO]       oni_value                     164180.7
+2026-03-22 15:30:25,027 [INFO]       u_wind_avg                    101699.8
+2026-03-22 15:30:25,027 [INFO]       wind_speed_env_avg             80051.5
+2026-03-22 15:30:25,027 [INFO]       slp_180d_avg                   79360.2
+2026-03-22 15:30:25,027 [INFO] 
+   Step 7: Calibrating probabilities (isotonic on val set)...
+2026-03-22 15:30:25,200 [INFO]    Calibrator saved to: /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/probability_calibrator.pkl
+2026-03-22 15:30:25,202 [INFO]    Raw prob mean  : 0.073170
+2026-03-22 15:30:25,202 [INFO]    Calibrated mean: 0.047809
+2026-03-22 15:30:25,202 [INFO] 
+   Phase 4 complete in 14s
+2026-03-22 15:30:25,726 [INFO] ============================================================
+2026-03-22 15:30:25,726 [INFO] PHASE 5: Monthly Storm Trend Forecasting (Optimized)
+2026-03-22 15:30:25,726 [INFO] ============================================================
+2026-03-22 15:30:25,726 [INFO]    Step 1: Running calibrated inference on full dataset...
+2026-03-22 15:30:25,760 [INFO]    Unpersisted full_df; inference_df repartitioned to 64 partitions.
+2026-03-22 15:30:25,780 [INFO]    Step 2: Calculating 5 monthly SPI variants...
+2026-03-22 15:30:25,800 [INFO]    Step 3: Loading full-basin IBTrACS for actual storm counts...
+2026-03-22 15:30:25,870 [INFO]    Step 3b: Extracting monthly ONI values...
+2026-03-22 15:30:25,876 [INFO]    Step 4: Joining monthly SPI + actuals + ONI → Pandas...
+26/03/22 15:30:27 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 80.4 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 216.2 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 216.3 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_0 in memory! (computed 217.0 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_2 in memory! (computed 217.9 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 217.5 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_9 in memory! (computed 243.5 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_4 in memory! (computed 243.9 MiB so far)
+26/03/22 15:30:28 WARN MemoryStore: Not enough space to cache rdd_27_6 in memory! (computed 299.4 MiB so far)
+26/03/22 15:45:45 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 327.2 MiB so far)
+26/03/22 15:45:57 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 1078.3 MiB so far)
+26/03/22 15:45:58 WARN MemoryStore: Not enough space to cache rdd_27_16 in memory! (computed 605.7 MiB so far)
+26/03/22 15:46:03 WARN MemoryStore: Not enough space to cache rdd_27_14 in memory! (computed 1081.7 MiB so far)
+26/03/22 15:46:04 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 1202.3 MiB so far)
+26/03/22 15:46:18 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_17 in memory.
+26/03/22 15:46:18 WARN MemoryStore: Not enough space to cache rdd_27_17 in memory! (computed 504.0 B so far)
+26/03/22 15:46:20 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_18 in memory.
+26/03/22 15:46:20 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 504.0 B so far)
+26/03/22 15:46:21 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_19 in memory.
+26/03/22 15:46:21 WARN MemoryStore: Not enough space to cache rdd_27_19 in memory! (computed 504.0 B so far)
+26/03/22 15:46:28 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_20 in memory.
+26/03/22 15:46:28 WARN MemoryStore: Not enough space to cache rdd_27_20 in memory! (computed 504.0 B so far)
+26/03/22 15:47:43 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_21 in memory.
+26/03/22 15:47:43 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 504.0 B so far)
+26/03/22 16:00:09 WARN MemoryStore: Not enough space to cache rdd_27_23 in memory! (computed 945.2 MiB so far)
+26/03/22 16:00:10 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 719.5 MiB so far)
+26/03/22 16:00:18 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_25 in memory.
+26/03/22 16:00:18 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 504.0 B so far)
+26/03/22 16:00:37 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_26 in memory.
+26/03/22 16:00:37 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 504.0 B so far)
+26/03/22 16:00:46 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_27 in memory.
+26/03/22 16:00:46 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 504.0 B so far)
+26/03/22 16:00:49 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_28 in memory.
+26/03/22 16:00:49 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 504.0 B so far)
+26/03/22 16:00:57 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_29 in memory.
+26/03/22 16:00:57 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 504.0 B so far)
+26/03/22 16:01:11 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_30 in memory.
+26/03/22 16:01:11 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 504.0 B so far)
+26/03/22 16:03:10 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 713.7 MiB so far)
+26/03/22 16:14:36 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 763.1 MiB so far)
+26/03/22 16:15:23 WARN MemoryStore: Not enough space to cache rdd_27_34 in memory! (computed 837.5 MiB so far)
+26/03/22 16:15:55 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_36 in memory.
+26/03/22 16:15:55 WARN MemoryStore: Not enough space to cache rdd_27_36 in memory! (computed 504.0 B so far)
+26/03/22 16:16:23 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_37 in memory.
+26/03/22 16:16:23 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 504.0 B so far)
+26/03/22 16:16:32 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_38 in memory.
+26/03/22 16:16:32 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 504.0 B so far)
+26/03/22 16:16:49 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_39 in memory.
+26/03/22 16:16:49 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 504.0 B so far)
+26/03/22 16:16:54 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_40 in memory.
+26/03/22 16:16:54 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 504.0 B so far)
+26/03/22 16:17:45 WARN MemoryStore: Not enough space to cache rdd_27_41 in memory! (computed 25.8 MiB so far)
+26/03/22 16:22:30 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 500.0 MiB so far)
+26/03/22 16:30:36 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 766.5 MiB so far)
+26/03/22 16:32:42 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 766.4 MiB so far)
+26/03/22 16:33:20 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_49 in memory.
+26/03/22 16:33:21 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 504.0 B so far)
+26/03/22 16:33:39 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_50 in memory.
+26/03/22 16:33:39 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 504.0 B so far)
+26/03/22 16:34:03 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_51 in memory.
+26/03/22 16:34:03 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 504.0 B so far)
+26/03/22 16:34:17 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_52 in memory.
+26/03/22 16:34:17 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 504.0 B so far)
+26/03/22 16:34:27 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 27.4 MiB so far)
+26/03/22 16:41:18 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 1081.0 MiB so far)
+26/03/22 16:41:32 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_56 in memory.
+26/03/22 16:41:32 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 504.0 B so far)
+26/03/22 16:43:32 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_57 in memory.
+26/03/22 16:43:32 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 504.0 B so far)
+26/03/22 16:46:23 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 215.8 MiB so far)
+26/03/22 16:46:30 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 27.8 MiB so far)
+26/03/22 16:46:42 WARN MemoryStore: Not enough space to cache rdd_27_60 in memory! (computed 26.2 MiB so far)
+26/03/22 16:46:43 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 27.4 MiB so far)
+26/03/22 16:46:48 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 26.3 MiB so far)
+26/03/22 16:47:34 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 27.0 MiB so far)
+26/03/22 16:58:53 WARN MemoryStore: Not enough space to cache rdd_27_1 in memory! (computed 1197.1 MiB so far)
+26/03/22 16:59:18 WARN MemoryStore: Not enough space to cache rdd_27_3 in memory! (computed 1200.9 MiB so far)
+26/03/22 16:59:50 WARN MemoryStore: Not enough space to cache rdd_27_5 in memory! (computed 1208.1 MiB so far)
+26/03/22 17:00:19 WARN MemoryStore: Not enough space to cache rdd_27_8 in memory! (computed 1209.1 MiB so far)
+26/03/22 17:00:55 WARN MemoryStore: Not enough space to cache rdd_27_12 in memory! (computed 54.7 MiB so far)
+26/03/22 17:01:05 WARN MemoryStore: Not enough space to cache rdd_27_13 in memory! (computed 1202.3 MiB so far)
+26/03/22 17:01:20 WARN MemoryStore: Not enough space to cache rdd_27_15 in memory! (computed 1201.1 MiB so far)
+26/03/22 17:01:26 WARN MemoryStore: Not enough space to cache rdd_27_18 in memory! (computed 271.7 MiB so far)
+26/03/22 17:01:46 WARN MemoryStore: Not enough space to cache rdd_27_21 in memory! (computed 464.8 MiB so far)
+26/03/22 17:01:49 WARN MemoryStore: Not enough space to cache rdd_27_22 in memory! (computed 609.6 MiB so far)
+26/03/22 17:01:53 WARN MemoryStore: Not enough space to cache rdd_27_24 in memory! (computed 468.2 MiB so far)
+26/03/22 17:01:58 WARN MemoryStore: Not enough space to cache rdd_27_25 in memory! (computed 1084.7 MiB so far)
+26/03/22 17:01:58 WARN MemoryStore: Not enough space to cache rdd_27_26 in memory! (computed 611.1 MiB so far)
+26/03/22 17:02:16 WARN MemoryStore: Not enough space to cache rdd_27_29 in memory! (computed 606.8 MiB so far)
+26/03/22 17:02:21 WARN MemoryStore: Not enough space to cache rdd_27_31 in memory! (computed 463.9 MiB so far)
+26/03/22 17:02:21 WARN MemoryStore: Not enough space to cache rdd_27_27 in memory! (computed 1368.1 MiB so far)
+26/03/22 17:02:22 WARN MemoryStore: Not enough space to cache rdd_27_30 in memory! (computed 719.2 MiB so far)
+26/03/22 17:02:22 WARN MemoryStore: Not enough space to cache rdd_27_28 in memory! (computed 1423.7 MiB so far)
+26/03/22 17:02:22 WARN MemoryStore: Not enough space to cache rdd_27_32 in memory! (computed 325.1 MiB so far)
+26/03/22 17:02:32 WARN MemoryStore: Not enough space to cache rdd_27_39 in memory! (computed 81.2 MiB so far)
+26/03/22 17:02:33 WARN MemoryStore: Not enough space to cache rdd_27_37 in memory! (computed 323.4 MiB so far)
+26/03/22 17:02:33 WARN MemoryStore: Not enough space to cache rdd_27_38 in memory! (computed 162.6 MiB so far)
+26/03/22 17:02:34 WARN MemoryStore: Not enough space to cache rdd_27_33 in memory! (computed 1147.3 MiB so far)
+26/03/22 17:02:37 WARN MemoryStore: Not enough space to cache rdd_27_35 in memory! (computed 1360.5 MiB so far)
+26/03/22 17:02:41 WARN MemoryStore: Not enough space to cache rdd_27_40 in memory! (computed 106.5 MiB so far)
+26/03/22 17:02:47 WARN MemoryStore: Not enough space to cache rdd_27_42 in memory! (computed 762.6 MiB so far)
+26/03/22 17:02:55 WARN MemoryStore: Not enough space to cache rdd_27_44 in memory! (computed 499.8 MiB so far)
+26/03/22 17:03:06 WARN MemoryStore: Not enough space to cache rdd_27_46 in memory! (computed 501.7 MiB so far)
+26/03/22 17:03:06 WARN MemoryStore: Not enough space to cache rdd_27_49 in memory! (computed 189.6 MiB so far)
+26/03/22 17:03:13 WARN MemoryStore: Not enough space to cache rdd_27_48 in memory! (computed 766.4 MiB so far)
+26/03/22 17:03:14 WARN MemoryStore: Not enough space to cache rdd_27_47 in memory! (computed 923.6 MiB so far)
+26/03/22 17:03:14 WARN MemoryStore: Not enough space to cache rdd_27_45 in memory! (computed 1155.1 MiB so far)
+26/03/22 17:03:14 WARN MemoryStore: Not enough space to cache rdd_27_50 in memory! (computed 624.9 MiB so far)
+26/03/22 17:03:14 WARN MemoryStore: Failed to reserve initial memory threshold of 1024.0 KiB for computing block rdd_27_51 in memory.
+26/03/22 17:03:14 WARN MemoryStore: Not enough space to cache rdd_27_51 in memory! (computed 504.0 B so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_52 in memory! (computed 1153.5 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_56 in memory! (computed 325.9 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_57 in memory! (computed 326.7 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_58 in memory! (computed 215.8 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_55 in memory! (computed 463.0 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_53 in memory! (computed 928.9 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_54 in memory! (computed 760.8 MiB so far)
+26/03/22 17:03:27 WARN MemoryStore: Not enough space to cache rdd_27_59 in memory! (computed 1501.8 KiB so far)
+26/03/22 17:03:43 WARN MemoryStore: Not enough space to cache rdd_27_63 in memory! (computed 352.5 MiB so far)
+26/03/22 17:03:45 WARN MemoryStore: Not enough space to cache rdd_27_61 in memory! (computed 1205.6 MiB so far)
+26/03/22 17:03:46 WARN MemoryStore: Not enough space to cache rdd_27_62 in memory! (computed 1153.8 MiB so far)
+2026-03-22 17:34:31,845 [INFO]    Monthly DataFrame: 505 rows (43 years × up to 12 months)
+2026-03-22 17:34:31,859 [WARNING]    ⚠️  Incomplete data years (< 6 months of coverage): [2025] — excluded from test evaluation
+2026-03-22 17:34:31,859 [INFO]    Step 5: Deriving temporal context features (merge-based lags)...
+2026-03-22 17:34:31,913 [INFO]    Step 5b: ENSO × SPI interaction features (spatial phase shift)...
+2026-03-22 17:34:31,927 [INFO]    Step 6: Training 4 regression models...
+2026-03-22 17:34:32,121 [INFO]       AdaBoost               Train MAE=0.97  Test MAE=1.17
+2026-03-22 17:34:32,729 [INFO]       GBR_Huber              Train MAE=0.43  Test MAE=1.11
+2026-03-22 17:34:32,767 [INFO]       Poisson_GLM            Train MAE=2.55  Test MAE=2.47
+2026-03-22 17:34:32,775 [INFO]       Ridge_baseline         Train MAE=0.97  Test MAE=1.03
+2026-03-22 17:34:32,775 [INFO] 
+   📊 Model Comparison (Monthly Test MAE):
+2026-03-22 17:34:32,775 [INFO]    Model                   Train MAE   Test MAE
+2026-03-22 17:34:32,775 [INFO]    ────────────────────── ────────── ──────────
+2026-03-22 17:34:32,775 [INFO]    AdaBoost                     0.97       1.17
+2026-03-22 17:34:32,775 [INFO]    GBR_Huber                    0.43       1.11
+2026-03-22 17:34:32,775 [INFO]    Poisson_GLM                  2.55       2.47
+2026-03-22 17:34:32,775 [INFO]    Ridge_baseline               0.97       1.03 ★
+2026-03-22 17:34:32,775 [INFO] 
+   ✅ Best model: Ridge_baseline (Test MAE = 1.03)
+2026-03-22 17:34:32,776 [INFO] 
+   🎯 Test Year Summary (≥ 2020, complete years only):
+2026-03-22 17:34:32,776 [INFO]    Year    Act.Total  Pred.Total   MAE/mo
+2026-03-22 17:34:32,776 [INFO]    ────── ────────── ─────────── ────────
+2026-03-22 17:34:32,777 [INFO]    2020           34        31.6     0.94
+2026-03-22 17:34:32,777 [INFO]    2021           31        38.2     1.28
+2026-03-22 17:34:32,778 [INFO]    2022           37        40.1     0.87
+2026-03-22 17:34:32,778 [INFO]    2023           27        31.1     1.08
+2026-03-22 17:34:32,779 [INFO]    2024           33        36.4     0.97
+2026-03-22 17:34:32,779 [INFO] 
+   ⚠️  Partial years (excluded from MAE):
+2026-03-22 17:34:32,779 [INFO]    2025            0   (partial)   (1 month of data)
+2026-03-22 17:34:32,779 [INFO] 
+   📋 2024 Monthly Breakdown:
+2026-03-22 17:34:32,779 [INFO]    Month   Monthly_SPI   Actual  Predicted
+2026-03-22 17:34:32,779 [INFO]    ────── ──────────── ──────── ──────────
+2026-03-22 17:34:32,780 [INFO]    Jan           587.8        0        0.8
+2026-03-22 17:34:32,780 [INFO]    Feb           368.9        0        0.3
+2026-03-22 17:34:32,780 [INFO]    Mar          1488.8        0        0.5
+2026-03-22 17:34:32,780 [INFO]    Apr          3094.9        0        0.7
+2026-03-22 17:34:32,780 [INFO]    May         12473.6        2        1.9
+2026-03-22 17:34:32,780 [INFO]    Jun          8329.7        1        0.7
+2026-03-22 17:34:32,780 [INFO]    Jul         24562.4        3        4.6
+2026-03-22 17:34:32,780 [INFO]    Aug         21447.5        7        5.2
+2026-03-22 17:34:32,780 [INFO]    Sep         52569.7       10        9.1
+2026-03-22 17:34:32,780 [INFO]    Oct         30722.9        4        5.6
+2026-03-22 17:34:32,780 [INFO]    Nov         22626.3        5        4.0
+2026-03-22 17:34:32,780 [INFO]    Dec         17569.9        1        3.0
+2026-03-22 17:34:32,780 [INFO]    ────── ──────────── ──────── ──────────
+2026-03-22 17:34:32,780 [INFO]    TOTAL                     33       36.4
+2026-03-22 17:34:32,789 [INFO] 
+   🌍 ANNUAL FORECAST SUMMARY (Test Years ≥ 2020)
+2026-03-22 17:34:32,789 [INFO]    Year    Annual_Actual  Annual_Predicted    Error
+2026-03-22 17:34:32,789 [INFO]    ────── ────────────── ───────────────── ────────
+2026-03-22 17:34:32,789 [INFO]    2020               34              31.6     +2.4
+2026-03-22 17:34:32,789 [INFO]    2021               31              38.2     -7.2
+2026-03-22 17:34:32,789 [INFO]    2022               37              40.1     -3.1
+2026-03-22 17:34:32,789 [INFO]    2023               27              31.1     -4.1
+2026-03-22 17:34:32,789 [INFO]    2024               33              36.4     -3.4
+2026-03-22 17:34:32,789 [INFO]    ────── ────────────── ───────────────── ────────
+2026-03-22 17:34:32,789 [INFO]    Monthly MAE : 1.03 storms/month
+2026-03-22 17:34:32,789 [INFO]    Annual MAE  : 4.03 storms/year
+2026-03-22 17:34:32,789 [INFO]    Best model  : Ridge_baseline
+2026-03-22 17:34:32,798 [INFO]    Saved Ridge model → /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/ridge_monthly_model.pkl
+2026-03-22 17:34:32,812 [INFO]    Saved monthly predictions → /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/monthly_predictions.csv
+2026-03-22 17:34:32,812 [INFO] 
+   Phase 5 complete in 7447s
+2026-03-22 17:34:32,813 [INFO] 
+============================================================
+2026-03-22 17:34:32,813 [INFO] ✅ PIPELINE COMPLETE
+2026-03-22 17:34:32,813 [INFO] ============================================================
+2026-03-22 17:34:32,813 [INFO]    LightGBM model   : /Volumes/ExternalSSD/StudyMaterials/252_SPARK/WeatherPredict/models/lgbm_storm_classifier.pkl
+2026-03-22 17:34:32,813 [INFO]    Monthly Test MAE : 1.03 storms/month
+2026-03-22 17:34:32,813 [INFO]    Annual Test MAE  : 4.03 storms/year
+2026-03-22 17:35:27,960 [INFO] Closing down clientserver connection
+
+  ✓ Phase 1–5 — Bottom-Up Forecast Pipeline completed in 12387s
+  Model saved: 2026-03-22 15:30
+
+━━━ All done in 12387s ━━━
+
+╭─ Model Status ─────────────────────────────────────────╮
+│  Phase 1–5 — Bottom-Up Forecast Pipeline            🟢 2026-03-22 15:30
+│  Phase 6  — Storm Genesis Classifier                🟢 2026-03-21 23:04
+│  Phase 7  — Track Displacement Regressor            🟢 2026-03-21 23:09
+│  Phase 8  — Landfall Risk Classifier                🟢 2026-03-22 02:42
+│  Phase 9  — Chained Pipeline (Genesis→Track→Landfall) 🟢 2026-03-22 02:42
+╰────────────────────────────────────────────────────────╯
+
+fubuki@192 ~ % 

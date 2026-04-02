@@ -1,0 +1,7 @@
+*.pkl
+parquet_data/
+*.pdf
+.DS_Store
+__pycache__
+*.parquet
+.csv
