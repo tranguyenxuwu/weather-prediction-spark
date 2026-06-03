@@ -251,4 +251,4 @@ conda activate pyspark
 python models/bottom_up_forecast.py
 ```
 
-Runtime: ~35 minutes on a single machine (11GB driver, 9GB executor).
+Runtime: ~3 hours on a single machine (11GB driver, 9GB executor). Cached reruns ~20 min.

@@ -9,8 +9,9 @@ Bottom-up tropical cyclone forecasting pipeline. Predicts **monthly storm counts
 ## Tech Stack
 
 - **PySpark** — data engineering (rolling features, joins, distributed inference via `mapInPandas`)
-- **LightGBM** (native Python API, not SynapseML) — micro-level storm classifier
-- **scikit-learn** — monthly regression (Poisson GridSearchCV), probability calibration (isotonic), metrics
+- **LightGBM** (native Python API, not SynapseML) — micro-level storm classifier + Tweedie regression in Phase 5
+- **statsmodels** — Zero-Inflated Negative Binomial (ZINB) base learner in Phase 5 ensemble
+- **scikit-learn** — Ridge meta-learner, probability calibration (isotonic), metrics; legacy: Poisson GridSearchCV
 - **pandas / numpy / scipy** — local training, post-processing
 - **Streamlit** — visualization dashboard (`app.py`, `app/app.py`)
 - **Python 3.11+**, Conda env: `pyspark`
@@ -114,7 +115,7 @@ WeatherPredict/
 ```bash
 conda activate pyspark
 
-# Full pipeline (first run: ~45 min; cached: ~20 min)
+# Full pipeline (first run: ~3 hours; cached: ~20 min)
 python -m models.bottom_up_forecast
 
 # Prepare monthly cache only — no training (~20 min first, ~5 min cached)
